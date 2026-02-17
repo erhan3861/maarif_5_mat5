@@ -1,0 +1,411 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Blok Mimarı - Görev 5</title>
+    <link href="https://fonts.googleapis.com/css2?family=Teko:wght@400;600&family=Roboto:wght@500;700&display=swap" rel="stylesheet">
+    <style>
+        /* --- GENEL AYARLAR (İNŞAAT TEMASI) --- */
+        body {
+            margin: 0;
+            padding: 0;
+            font-family: 'Roboto', sans-serif;
+            background-color: #f39c12; /* Baret Sarısı */
+            /* Blueprint Deseni */
+            background-image: 
+                linear-gradient(rgba(255,255,255,0.2) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(255,255,255,0.2) 1px, transparent 1px);
+            background-size: 40px 40px;
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            color: #2c3e50;
+            overflow: hidden;
+            user-select: none;
+        }
+
+        /* --- ÜST BUTONLAR --- */
+        .top-bar {
+            position: absolute; top: 20px; width: 95%;
+            display: flex; justify-content: space-between; align-items: center;
+            z-index: 50; pointer-events: none;
+        }
+        .right-group { display: flex; gap: 10px; pointer-events: auto; }
+        
+        .top-btn {
+            padding: 8px 20px; border-radius: 5px; border: 3px solid #2c3e50;
+            font-family: 'Teko', sans-serif; font-size: 1.2rem; letter-spacing: 1px;
+            text-decoration: none; cursor: pointer; transition: all 0.2s;
+            display: flex; align-items: center; justify-content: center;
+            pointer-events: auto; background: #fff; color: #2c3e50;
+            box-shadow: 5px 5px 0 rgba(0,0,0,0.2);
+        }
+
+        .home-btn { background: #e74c3c; color: white; border-color: #c0392b; }
+        .code-btn { background: #3498db; color: white; border-color: #2980b9; }
+        .full-btn { background: #95a5a6; color: white; border-color: #7f8c8d; }
+
+        .top-btn:hover { transform: translate(-2px, -2px); box-shadow: 7px 7px 0 rgba(0,0,0,0.2); }
+        .top-btn:active { transform: translate(2px, 2px); box-shadow: 2px 2px 0 rgba(0,0,0,0.2); }
+
+        /* --- OYUN KONSOLU --- */
+        .site-interface {
+            width: 95%; max-width: 1000px;
+            height: 85vh;
+            background: #ecf0f1;
+            border: 5px solid #2c3e50;
+            border-radius: 10px;
+            box-shadow: 0 20px 50px rgba(0,0,0,0.5);
+            display: grid;
+            grid-template-columns: 1fr 350px; /* Bina Alanı | Kontrol Paneli */
+            overflow: hidden;
+        }
+
+        /* Bina Alanı (Sol) */
+        .construction-zone {
+            background: #34495e; /* Gece Gökyüzü / Blueprint */
+            position: relative;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: flex-end;
+            padding-bottom: 50px;
+            overflow: hidden;
+        }
+
+        /* Vinç Süsü */
+        .crane {
+            position: absolute; top: 20px; right: 20px;
+            font-size: 4rem; opacity: 0.5; color: #f1c40f;
+        }
+
+        /* Bina (Grid Stack) */
+        .building-container {
+            display: flex; flex-direction: column-reverse; /* Aşağıdan yukarı diz */
+            gap: 2px;
+            transition: all 0.3s;
+        }
+
+        .floor {
+            display: flex; gap: 2px;
+            transition: all 0.3s;
+        }
+
+        .block {
+            width: 40px; height: 25px;
+            background: #95a5a6;
+            border: 1px solid #7f8c8d;
+            box-shadow: inset 2px 2px 0 rgba(255,255,255,0.3), inset -2px -2px 0 rgba(0,0,0,0.3);
+        }
+
+        /* Renkli Bloklar */
+        .block-blue { background: #3498db; border-color: #2980b9; }
+        .block-red { background: #e74c3c; border-color: #c0392b; }
+
+        /* Kontrol Paneli (Sağ) */
+        .control-panel {
+            background: #fff;
+            padding: 20px;
+            display: flex; flex-direction: column;
+            align-items: center;
+            border-left: 5px solid #2c3e50;
+            overflow-y: auto;
+        }
+
+        .panel-header {
+            font-family: 'Teko', sans-serif; font-size: 2rem; margin-bottom: 10px;
+            color: #2c3e50; border-bottom: 2px solid #f1c40f; width: 100%; text-align: center;
+        }
+
+        .info-box {
+            background: #bdc3c7; width: 100%; padding: 10px; border-radius: 5px; margin-bottom: 20px;
+            font-size: 0.9rem;
+        }
+
+        /* Slider */
+        .slider-group {
+            width: 100%; margin-bottom: 20px; text-align: center;
+        }
+        .floor-slider { width: 100%; cursor: pointer; accent-color: #e74c3c; margin-top: 10px; }
+
+        /* Hesaplama Alanı */
+        .math-area {
+            background: #2c3e50; color: #fff; padding: 15px; border-radius: 10px; width: 100%;
+            font-family: monospace; font-size: 1.1rem;
+        }
+        
+        .math-row { display: flex; justify-content: space-between; margin-bottom: 8px; align-items: center; }
+        .math-input {
+            width: 50px; background: #34495e; border: 1px solid #7f8c8d; color: #fff; 
+            text-align: center; padding: 5px; font-weight: bold;
+        }
+
+        .submit-btn {
+            margin-top: 20px; padding: 10px 30px; background: #27ae60; color: white;
+            border: none; border-radius: 5px; cursor: pointer; font-family: 'Teko'; font-size: 1.5rem;
+            width: 100%; transition: transform 0.1s;
+        }
+        .submit-btn:active { transform: scale(0.95); }
+
+        /* Feedback Overlay */
+        .feedback-overlay {
+            position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(44, 62, 80, 0.95); display: none;
+            flex-direction: column; align-items: center; justify-content: center;
+            z-index: 100; text-align: center;
+        }
+
+        .anim-icon { font-size: 5rem; margin-bottom: 10px; animation: bounce 1s infinite; }
+        @keyframes bounce { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-10px); } }
+
+        .next-btn {
+            margin-top: 20px; padding: 10px 40px; background: #f1c40f; color: #2c3e50;
+            border: none; border-radius: 5px; cursor: pointer; font-family: 'Teko'; font-size: 1.5rem;
+        }
+
+        /* Şifre Kartı */
+        .secret-card {
+            border: 4px solid #f1c40f; padding: 20px; border-radius: 10px; 
+            background: #fff; margin-top: 15px; display: none; color: #2c3e50;
+        }
+        .secret-letter { font-size: 5rem; color: #e67e22; font-weight: 900; display: block; font-family: sans-serif; }
+
+        /* KODLAMA MODAL */
+        .modal-overlay {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0, 0, 0, 0.9); z-index: 1000;
+            display: none; align-items: center; justify-content: center;
+        }
+        .modal-card {
+            background: #ecf0f1; padding: 30px; border-radius: 10px; max-width: 500px;
+            text-align: center; color: #2c3e50; position: relative; border: 4px solid #2980b9;
+        }
+        .close-btn { position: absolute; top: 10px; right: 15px; font-size: 1.5rem; cursor: pointer; border: none; background: none; color: #333; }
+        .action-link { display: block; background: #2980b9; color: #fff; padding: 12px; border-radius: 5px; text-decoration: none; margin: 10px 0; font-weight: bold; font-family: 'Teko'; font-size: 1.2rem;}
+
+        @media (max-width: 800px) {
+            .site-interface { grid-template-columns: 1fr; grid-template-rows: 1fr auto; height: auto; }
+            .construction-zone { height: 300px; }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="top-bar">
+        <a href="index.html" class="top-btn home-btn">⌂ ANA MENÜ</a>
+        <div class="right-group">
+            <button onclick="openCodeModal()" class="top-btn code-btn">⌨ KODLA</button>
+            <button onclick="toggleFullScreen()" id="full-btn" class="top-btn full-btn">⛶ TAM EKRAN</button>
+        </div>
+    </div>
+
+    <div class="site-interface">
+        
+        <div class="construction-zone">
+            <div class="crane">🏗️</div>
+            <div id="building" class="building-container">
+                </div>
+            <div style="width: 80%; height: 10px; background: #7f8c8d; border-radius: 50%; margin-top: 10px;"></div> </div>
+
+        <div class="control-panel">
+            <div class="panel-header">BLOK MİMARI <span id="level-idx" style="font-size:1rem; color:#7f8c8d;">(1/5)</span></div>
+            
+            <div class="info-box">
+                <b>TABAN ALANI:</b> <span id="base-val">10</span> blok<br>
+                <b>TOPLAM KAT:</b> <span id="height-val">5</span> kat<br>
+                <small>Taban x Yükseklik = Hacim</small>
+            </div>
+
+            <div class="slider-group">
+                <label>Katları Böl (Grupla):</label>
+                <input type="range" id="floor-splitter" class="floor-slider" min="1" max="4" value="2" oninput="updateVisuals()">
+            </div>
+
+            <div class="math-area">
+                <div class="math-row">
+                    <span style="color:#3498db;">MAVİ KATLAR:</span>
+                    <span><span id="base-blue">10</span> x <span id="h-blue">2</span> = <input type="number" id="inp-blue" class="math-input"></span>
+                </div>
+                <div class="math-row">
+                    <span style="color:#e74c3c;">KIRMIZI KATLAR:</span>
+                    <span><span id="base-red">10</span> x <span id="h-red">3</span> = <input type="number" id="inp-red" class="math-input"></span>
+                </div>
+                <hr style="border-color:#7f8c8d;">
+                <div class="math-row">
+                    <span>TOPLAM BLOK:</span>
+                    <input type="number" id="inp-total" class="math-input" style="width:80px;">
+                </div>
+            </div>
+
+            <button class="submit-btn" onclick="checkAnswer()">İNŞAATI BİTİR ✔</button>
+        </div>
+
+        <div class="feedback-overlay" id="feedback">
+            <div class="anim-icon">🏢</div>
+            <h2 style="color:#f1c40f;" id="fb-title">SAĞLAM YAPI!</h2>
+            <p id="fb-msg" style="color:#ecf0f1;">Binayı doğru hesapladın.</p>
+            
+            <div class="secret-card" id="secret-card">
+                ŞİFRE PARÇASI:
+                <span class="secret-letter">L</span>
+            </div>
+
+            <button class="next-btn" id="next-btn" onclick="nextLevel()">SONRAKİ PROJE ▶</button>
+        </div>
+    </div>
+
+    <div class="modal-overlay" id="codeModal">
+        <div class="modal-card">
+            <button class="close-btn" onclick="closeCodeModal()">×</button>
+            <h2 style="color:#2980b9;">🏗️ İnşaat Döngüsü</h2>
+            
+            <a href="https://github.com/erhan3861/maarif_5_mat_2/blob/main/oyun5.html" target="_blank" class="action-link">🐙 GitHub Kaynak Kodu</a>
+            <a href="https://app.talent14.com/codeEditor" target="_blank" class="action-link" style="background:#2c3e50;">✨ Talent14 Editörü</a>
+        </div>
+    </div>
+
+    <script>
+        // --- TAM EKRAN ---
+        function toggleFullScreen() {
+            const btn = document.getElementById('full-btn');
+            if (!document.fullscreenElement) {
+                document.documentElement.requestFullscreen();
+                btn.innerHTML = "⛶ KÜÇÜLT";
+            } else {
+                if (document.exitFullscreen) {
+                    document.exitFullscreen();
+                    btn.innerHTML = "⛶ TAM EKRAN";
+                }
+            }
+        }
+
+        // --- OYUN VERİLERİ ---
+        // base: Taban alanı (blok sayısı)
+        // floors: Toplam kat
+        // levels array
+        const levels = [
+            { base: 5, floors: 4 }, // 5x4 = 20
+            { base: 4, floors: 6 }, // 4x6 = 24
+            { base: 6, floors: 5 }, // 6x5 = 30
+            { base: 3, floors: 8 }, // 3x8 = 24
+            { base: 8, floors: 5 }  // 8x5 = 40
+        ];
+
+        let currentIdx = 0;
+        let splitValue = 2; // Default
+
+        window.onload = loadLevel;
+
+        function loadLevel() {
+            if (currentIdx >= levels.length) return;
+
+            const data = levels[currentIdx];
+            document.getElementById('level-idx').innerText = (currentIdx + 1) + "/" + levels.length;
+            document.getElementById('base-val').innerText = data.base;
+            document.getElementById('height-val').innerText = data.floors;
+            document.getElementById('feedback').style.display = 'none';
+
+            // Slider ayarla
+            const slider = document.getElementById('floor-splitter');
+            slider.max = data.floors - 1; // En az 1 kat kalmalı
+            slider.value = Math.floor(data.floors / 2);
+            
+            // Input temizle
+            document.getElementById('inp-blue').value = "";
+            document.getElementById('inp-red').value = "";
+            document.getElementById('inp-total').value = "";
+
+            updateVisuals();
+        }
+
+        function updateVisuals() {
+            const data = levels[currentIdx];
+            splitValue = parseInt(document.getElementById('floor-splitter').value);
+            
+            const building = document.getElementById('building');
+            building.innerHTML = "";
+
+            // Bina Çizimi
+            for (let i = 0; i < data.floors; i++) {
+                const floor = document.createElement('div');
+                floor.className = 'floor';
+                
+                // Renk belirle (Alttakiler Mavi, Üsttekiler Kırmızı)
+                // i=0 en alt kat. Split değerine kadar mavi olsun.
+                const isBlue = i < splitValue;
+                const colorClass = isBlue ? 'block-blue' : 'block-red';
+
+                // Blokları ekle (Taban kadar)
+                for (let b = 0; b < data.base; b++) {
+                    const block = document.createElement('div');
+                    block.className = `block ${colorClass}`;
+                    floor.appendChild(block);
+                }
+                building.appendChild(floor); // Reverse column olduğu için üste eklenir görsel olarak
+            }
+
+            // Metinleri Güncelle
+            document.getElementById('base-blue').innerText = data.base;
+            document.getElementById('h-blue').innerText = splitValue;
+            
+            document.getElementById('base-red').innerText = data.base;
+            document.getElementById('h-red').innerText = (data.floors - splitValue);
+        }
+
+        function checkAnswer() {
+            const data = levels[currentIdx];
+            const blueH = splitValue;
+            const redH = data.floors - splitValue;
+
+            const userBlue = parseInt(document.getElementById('inp-blue').value);
+            const userRed = parseInt(document.getElementById('inp-red').value);
+            const userTotal = parseInt(document.getElementById('inp-total').value);
+
+            const correctBlue = data.base * blueH;
+            const correctRed = data.base * redH;
+            const correctTotal = data.base * data.floors;
+
+            if (userBlue === correctBlue && userRed === correctRed && userTotal === correctTotal) {
+                showFeedback(true);
+            } else {
+                alert("Hesaplamada hata var! Katları ve blokları tekrar say.");
+            }
+        }
+
+        function showFeedback(isSuccess) {
+            const fb = document.getElementById('feedback');
+            const nextBtn = document.getElementById('next-btn');
+            const title = document.getElementById('fb-title');
+            
+            fb.style.display = 'flex';
+
+            if (currentIdx === levels.length - 1) {
+                title.innerText = "BAŞ MİMAR!";
+                document.getElementById('secret-card').style.display = 'block';
+                nextBtn.innerText = "ANA MENÜYE DÖN";
+                nextBtn.onclick = () => window.location.href = 'index.html';
+            } else {
+                document.getElementById('secret-card').style.display = 'none';
+                nextBtn.innerText = "SONRAKİ PROJE ▶";
+                nextBtn.onclick = nextLevel;
+            }
+        }
+
+        function nextLevel() {
+            currentIdx++;
+            loadLevel();
+        }
+
+        // --- KODLAMA MODAL ---
+        function openCodeModal() { document.getElementById('codeModal').style.display = 'flex'; }
+        function closeCodeModal() { document.getElementById('codeModal').style.display = 'none'; }
+        document.getElementById('codeModal').addEventListener('click', function(e) {
+            if(e.target === this) closeCodeModal();
+        });
+
+    </script>
+</body>
+</html>

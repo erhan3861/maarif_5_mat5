@@ -1,0 +1,514 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Denge Tapınağı - Görev 1</title>
+    <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;700;900&family=Roboto:wght@500&display=swap" rel="stylesheet">
+    <style>
+        /* --- GENEL AYARLAR (TAPINAK TEMASI) --- */
+        body {
+            margin: 0;
+            padding: 0;
+            font-family: 'Roboto', sans-serif;
+            background-color: #1e130c;
+            /* Taş Duvar Dokusu */
+            background-image: 
+                linear-gradient(rgba(0,0,0,0.7), rgba(0,0,0,0.7)),
+                url('data:image/svg+xml;utf8,<svg width="100" height="100" viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg"><g fill="%232c1e16"><rect x="0" y="0" width="50" height="25"/><rect x="50" y="25" width="50" height="25"/><rect x="0" y="50" width="50" height="25"/><rect x="50" y="75" width="50" height="25"/></g></svg>');
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            color: #d4af37; /* Altın Rengi */
+            overflow: hidden;
+            user-select: none;
+        }
+
+        /* --- ÜST BUTONLAR --- */
+        .top-bar {
+            position: absolute; top: 20px; width: 95%;
+            display: flex; justify-content: space-between; align-items: center;
+            z-index: 50; pointer-events: none;
+        }
+        .right-group { display: flex; gap: 10px; pointer-events: auto; }
+        
+        .top-btn {
+            padding: 8px 20px; border-radius: 5px; border: 1px solid #d4af37;
+            font-family: 'Cinzel', serif; font-weight: 700; font-size: 0.9rem;
+            text-decoration: none; cursor: pointer; transition: all 0.3s;
+            display: flex; align-items: center; justify-content: center;
+            pointer-events: auto; background: rgba(20, 10, 5, 0.8); color: #d4af37;
+            box-shadow: 0 0 10px rgba(212, 175, 55, 0.2);
+        }
+
+        .home-btn { border-color: #e74c3c; color: #e74c3c; }
+        .top-btn:hover { background: #d4af37; color: #000; box-shadow: 0 0 20px rgba(212, 175, 55, 0.6); }
+
+        /* --- OYUN ALANI --- */
+        .temple-container {
+            width: 90%; max-width: 900px;
+            height: 80vh;
+            display: flex; flex-direction: column; align-items: center;
+            position: relative;
+        }
+
+        /* Başlık ve Hikaye */
+        .oracle-message {
+            background: rgba(0, 0, 0, 0.6);
+            border: 2px solid #d4af37;
+            padding: 15px 30px;
+            border-radius: 10px;
+            text-align: center;
+            margin-bottom: 20px;
+            max-width: 600px;
+            box-shadow: 0 0 20px rgba(0,0,0,0.8);
+        }
+        .oracle-title { font-family: 'Cinzel', serif; font-size: 1.5rem; color: #f1c40f; margin-bottom: 5px; }
+        .oracle-text { font-size: 1.1rem; color: #fff; line-height: 1.4; }
+
+        /* TERAZİ SİSTEMİ */
+        .scale-wrapper {
+            position: relative;
+            width: 600px; height: 350px;
+            display: flex; justify-content: center; align-items: flex-end;
+            margin-top: 20px;
+        }
+
+        /* Denge Çubuğu */
+        .beam {
+            width: 500px; height: 12px;
+            background: linear-gradient(to right, #8e44ad, #d4af37, #8e44ad);
+            border-radius: 6px;
+            position: relative;
+            transition: transform 1s cubic-bezier(0.68, -0.55, 0.27, 1.55); /* Yaylanma Efekti */
+            z-index: 2;
+        }
+
+        /* Destek Noktası */
+        .fulcrum {
+            width: 0; height: 0;
+            border-left: 30px solid transparent;
+            border-right: 30px solid transparent;
+            border-bottom: 80px solid #2c3e50;
+            position: absolute; bottom: 0; z-index: 1;
+        }
+        .fulcrum::after {
+            content:''; position:absolute; top:80px; left:-30px; width:60px; height:10px; background:rgba(0,0,0,0.5); filter:blur(5px);
+        }
+
+        /* Kefeler */
+        .pan {
+            width: 120px; height: 100px;
+            border-bottom: 60px solid rgba(212, 175, 55, 0.2);
+            border-left: 20px solid transparent;
+            border-right: 20px solid transparent;
+            position: absolute; bottom: -120px;
+            display: flex; flex-direction: column; justify-content: flex-end; align-items: center;
+            transform-origin: top center;
+            transition: transform 1s ease; /* Çubukla ters dönmeli */
+        }
+        
+        .pan-left { left: 0; }
+        .pan-right { right: 0; }
+
+        /* Zincirler */
+        .chain {
+            width: 2px; height: 80px; background: #aaa;
+            position: absolute; top: -80px;
+        }
+        .c1 { left: 0; transform: rotate(-15deg); transform-origin: bottom; }
+        .c2 { right: 0; transform: rotate(15deg); transform-origin: bottom; }
+
+        /* Ağırlık Görselleri (Sayı Blokları) */
+        .weight-block {
+            background: linear-gradient(135deg, #f1c40f, #b7950b);
+            color: #3e2723;
+            font-weight: 900; font-size: 1.5rem;
+            width: 60px; height: 60px;
+            display: flex; align-items: center; justify-content: center;
+            border: 2px solid #fff; border-radius: 5px;
+            box-shadow: 0 5px 10px rgba(0,0,0,0.5);
+            margin-bottom: -10px; /* Üst üste binme efekti */
+            z-index: 5;
+            position: absolute; bottom: 10px;
+            transition: all 0.5s;
+        }
+
+        .weight-ghost {
+            background: rgba(255,255,255,0.2); border: 2px dashed #fff; color: #fff;
+            transform: translateY(-70px); opacity: 0;
+        }
+
+        /* Kontrol Paneli */
+        .control-panel {
+            margin-top: 140px;
+            display: flex; gap: 20px;
+            opacity: 0; transition: opacity 0.5s; pointer-events: none;
+        }
+        .control-panel.active { opacity: 1; pointer-events: auto; }
+
+        .action-btn {
+            background: linear-gradient(to bottom, #2c3e50, #000);
+            border: 2px solid #d4af37;
+            color: #d4af37;
+            padding: 15px 30px;
+            font-family: 'Cinzel', serif; font-size: 1.1rem; font-weight: bold;
+            border-radius: 10px; cursor: pointer;
+            box-shadow: 0 0 15px rgba(212, 175, 55, 0.2);
+            transition: transform 0.2s;
+        }
+        .action-btn:hover { background: #d4af37; color: #000; transform: scale(1.05); }
+
+        /* Animasyonlar */
+        .tilt-left { transform: rotate(-15deg); }
+        .tilt-right { transform: rotate(15deg); }
+        .level-text { font-family: 'Cinzel'; position:absolute; top:0; left:0; padding:10px; font-weight:bold;}
+
+        /* Feedback Overlay */
+        .feedback-overlay {
+            position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0,0,0,0.9); display: none;
+            flex-direction: column; align-items: center; justify-content: center;
+            z-index: 100; border-radius: 20px; text-align: center;
+        }
+
+        .next-btn {
+            margin-top: 20px; padding: 12px 40px; background: #d4af37; color: #000;
+            border: none; border-radius: 5px; cursor: pointer; font-family: 'Cinzel'; font-weight: bold; font-size: 1.2rem;
+        }
+
+        /* Şifre Kartı */
+        .secret-card {
+            border: 4px double #d4af37; padding: 30px; border-radius: 5px; 
+            background: #1a0f0a; margin-top: 20px; display: none;
+        }
+        .secret-letter { font-size: 5rem; color: #f1c40f; font-weight: 900; display: block; text-shadow: 0 0 20px #f1c40f; }
+
+        /* KODLAMA MODAL */
+        .modal-overlay {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0, 0, 0, 0.9); z-index: 1000;
+            display: none; align-items: center; justify-content: center;
+        }
+        .modal-card {
+            background: #1e130c; padding: 30px; border-radius: 10px; max-width: 500px;
+            text-align: center; color: #d4af37; position: relative; border: 1px solid #d4af37;
+        }
+        .close-btn { position: absolute; top: 10px; right: 15px; font-size: 1.5rem; cursor: pointer; border: none; background: none; color: #aaa; }
+        .action-link { display: block; background: #d4af37; color: #000; padding: 12px; border-radius: 5px; text-decoration: none; margin: 10px 0; font-weight: bold; }
+
+        /* Mobil */
+        @media (max-width: 650px) {
+            .scale-wrapper { transform: scale(0.6); margin-top:0; }
+            .control-panel { margin-top: 50px; flex-direction: column; }
+        }
+
+    </style>
+</head>
+<body>
+
+    <div class="top-bar">
+        <a href="index.html" class="top-btn home-btn">⌂ ANA MENÜ</a>
+        <div class="right-group">
+            <button onclick="openCodeModal()" class="top-btn code-btn">⌨ KODLA</button>
+            <button onclick="toggleFullScreen()" id="full-btn" class="top-btn full-btn">⛶ TAM EKRAN</button>
+        </div>
+    </div>
+
+    <div class="temple-container">
+        <div class="level-text">SEVİYE: <span id="level-idx">1/5</span></div>
+
+        <div class="oracle-message">
+            <div class="oracle-title">DEV KONUŞUYOR</div>
+            <div class="oracle-text" id="story-text">
+                "Terazi dengede... Ancak birazdan huzur bozulacak."
+            </div>
+        </div>
+
+        <div class="scale-wrapper">
+            <div class="beam" id="beam">
+                <div class="pan pan-left" id="pan-l">
+                    <div class="chain c1"></div><div class="chain c2"></div>
+                    <div class="weight-block" id="w-l">10</div>
+                    <div class="weight-block weight-ghost" id="w-l-add">+5</div>
+                </div>
+
+                <div class="pan pan-right" id="pan-r">
+                    <div class="chain c1"></div><div class="chain c2"></div>
+                    <div class="weight-block" id="w-r">10</div>
+                    <div class="weight-block weight-ghost" id="w-r-add"></div>
+                </div>
+            </div>
+            <div class="fulcrum"></div>
+        </div>
+
+        <div class="control-panel" id="controls">
+            </div>
+
+        <div class="feedback-overlay" id="feedback">
+            <h1 style="font-size: 4rem; margin:0;">⚖️</h1>
+            <h2 style="color:#f1c40f;" id="fb-title">DENGE SAĞLANDI!</h2>
+            <p id="fb-msg" style="color:#fff;">Eşitliğin iki tarafına da aynı işlemi yaptın.</p>
+            
+            <div class="secret-card" id="secret-card">
+                ŞİFRE PARÇASI:
+                <span class="secret-letter">E</span>
+            </div>
+
+            <button class="next-btn" id="next-btn" onclick="nextLevel()">SONRAKİ SINA V ▶</button>
+        </div>
+    </div>
+
+    <div class="modal-overlay" id="codeModal">
+        <div class="modal-card">
+            <button class="close-btn" onclick="closeCodeModal()">×</button>
+            <h2 style="color:#f1c40f;">🏛️ Fizik Motoru</h2>
+           
+            <a href="https://github.com/erhan3861/maarif_5_mat_2/blob/main/oyun1.html" target="_blank" class="action-link">🐙 GitHub Kaynak Kodu</a>
+            <a href="https://app.talent14.com/codeEditor" target="_blank" class="action-link">✨ Talent14 Editörü</a>
+        </div>
+    </div>
+
+    <script>
+        // --- TAM EKRAN ---
+        function toggleFullScreen() {
+            const btn = document.getElementById('full-btn');
+            if (!document.fullscreenElement) {
+                document.documentElement.requestFullscreen();
+                btn.innerHTML = "⛶ KÜÇÜLT";
+            } else {
+                if (document.exitFullscreen) {
+                    document.exitFullscreen();
+                    btn.innerHTML = "⛶ TAM EKRAN";
+                }
+            }
+        }
+
+        // --- OYUN VERİLERİ ---
+        /*
+          Senaryo:
+          start: Başlangıç ağırlığı (Her iki tarafta eşit)
+          disturb: 'add' (ekle) veya 'sub' (çıkar)
+          side: 'left' (solu boz) veya 'right' (sağı boz)
+          val: Bozma miktarı
+          options: Kullanıcının seçebileceği butonlar
+        */
+        const levels = [
+            {
+                start: 10, disturb: 'add', side: 'left', val: 5,
+                story: "Dev sol kefeye 5 birim ağırlık ekledi! Denge bozuldu.",
+                options: [
+                    { txt: "SAĞA 5 EKLE", action: 'add', val: 5, correct: true },
+                    { txt: "SAĞDAN 5 ÇIKAR", action: 'sub', val: 5, correct: false }
+                ]
+            },
+            {
+                start: 20, disturb: 'sub', side: 'right', val: 8,
+                story: "Bir hırsız sağ kefeden 8 birim çaldı! Ne yapmalısın?",
+                options: [
+                    { txt: "SOLA 8 EKLE", action: 'add', val: 8, correct: false },
+                    { txt: "SOLDAN 8 ÇIKAR", action: 'sub', val: 8, correct: true }
+                ]
+            },
+            {
+                start: 15, disturb: 'add', side: 'right', val: 10,
+                story: "Sağ tarafa 10 birim altın kondu. Eşitliği korumak için...",
+                options: [
+                    { txt: "SOLA 10 EKLE", action: 'add', val: 10, correct: true },
+                    { txt: "SOLA 5 EKLE", action: 'add', val: 5, correct: false }
+                ]
+            },
+            {
+                start: 50, disturb: 'sub', side: 'left', val: 25,
+                story: "Sol kefedeki yükün yarısı (25 birim) düştü!",
+                options: [
+                    { txt: "SAĞDAN 25 ÇIKAR", action: 'sub', val: 25, correct: true },
+                    { txt: "SAĞA 25 EKLE", action: 'add', val: 25, correct: false }
+                ]
+            },
+            {
+                start: 100, disturb: 'add', side: 'left', val: 100,
+                story: "Sola devasa bir yük (100) bindi! Hızlı karar ver!",
+                options: [
+                    { txt: "SAĞA 100 EKLE", action: 'add', val: 100, correct: true },
+                    { txt: "HİÇBİR ŞEY YAPMA", action: 'none', val: 0, correct: false }
+                ]
+            }
+        ];
+
+        let currentIdx = 0;
+        let leftW = 0;
+        let rightW = 0;
+
+        window.onload = loadLevel;
+
+        function loadLevel() {
+            if (currentIdx >= levels.length) return;
+
+            const data = levels[currentIdx];
+            document.getElementById('level-idx').innerText = (currentIdx + 1) + "/" + levels.length;
+            document.getElementById('feedback').style.display = 'none';
+
+            // 1. Başlangıç Durumu (Dengede)
+            leftW = data.start;
+            rightW = data.start;
+            updateVisuals(0, false); // Nötr
+            document.getElementById('story-text').innerText = "Terazi dengede (" + data.start + " = " + data.start + ")...";
+            document.getElementById('controls').innerHTML = "";
+            document.getElementById('controls').classList.remove('active');
+
+            // Hayaletleri gizle
+            document.getElementById('w-l-add').style.opacity = 0;
+            document.getElementById('w-r-add').style.opacity = 0;
+
+            // 2. Olay Gerçekleşiyor (Gecikmeli)
+            setTimeout(() => {
+                triggerDisturbance(data);
+            }, 1500);
+        }
+
+        function triggerDisturbance(data) {
+            // Hikayeyi Güncelle
+            document.getElementById('story-text').innerText = data.story;
+
+            // Değerleri Güncelle
+            if (data.side === 'left') {
+                if (data.disturb === 'add') {
+                    leftW += data.val;
+                    showGhost('w-l-add', "+" + data.val);
+                } else {
+                    leftW -= data.val;
+                    showGhost('w-l-add', "-" + data.val);
+                }
+            } else {
+                if (data.disturb === 'add') {
+                    rightW += data.val;
+                    showGhost('w-r-add', "+" + data.val);
+                } else {
+                    rightW -= data.val;
+                    showGhost('w-r-add', "-" + data.val);
+                }
+            }
+
+            // Teraziyi Eğ
+            updateVisuals();
+
+            // Butonları Oluştur
+            const btnContainer = document.getElementById('controls');
+            btnContainer.innerHTML = "";
+            
+            data.options.forEach(opt => {
+                const btn = document.createElement('button');
+                btn.className = 'action-btn';
+                btn.innerText = opt.txt;
+                btn.onclick = () => checkAnswer(opt);
+                btnContainer.appendChild(btn);
+            });
+
+            btnContainer.classList.add('active');
+        }
+
+        function showGhost(id, text) {
+            const el = document.getElementById(id);
+            el.innerText = text;
+            el.style.opacity = 1;
+            el.style.transform = "translateY(-70px)"; // Yukarıdan inme veya aşağıdan çıkma efekti için CSS ayarlı
+            // CSS'de transition var mı kontrol et, yoksa basitçe görünür yap.
+            // Burada basitçe görünür yapıyoruz, CSS'de translateY default var.
+            // Animasyon için class toggle yapılabilir ama basit tutuyoruz.
+            el.style.transform = "translateY(0)"; 
+        }
+
+        function updateVisuals() {
+            const beam = document.getElementById('beam');
+            const panL = document.getElementById('pan-l');
+            const panR = document.getElementById('pan-r');
+
+            document.getElementById('w-l').innerText = leftW;
+            document.getElementById('w-r').innerText = rightW;
+
+            if (leftW > rightW) {
+                beam.style.transform = "rotate(-15deg)";
+                panL.style.transform = "rotate(15deg)"; // Kefeler hep düz durmalı
+                panR.style.transform = "rotate(15deg)";
+            } else if (rightW > leftW) {
+                beam.style.transform = "rotate(15deg)";
+                panL.style.transform = "rotate(-15deg)";
+                panR.style.transform = "rotate(-15deg)";
+            } else {
+                beam.style.transform = "rotate(0deg)";
+                panL.style.transform = "rotate(0deg)";
+                panR.style.transform = "rotate(0deg)";
+            }
+        }
+
+        function checkAnswer(opt) {
+            const data = levels[currentIdx];
+            
+            // Kullanıcı işlemini uygula (Simülasyon)
+            // Mantık: Diğer tarafa işlem yapıyoruz
+            // data.side 'left' ise biz 'right'a işlem yapmalıyız vs.
+            // Ama basitçe, butonun 'correct' olup olmadığına bakalım.
+            
+            if (opt.correct) {
+                // Doğru işlem -> Teraziyi dengele
+                if (data.side === 'left') {
+                    // Sol bozulmuştu, sağa işlem yapıyoruz
+                    if (data.disturb === 'add') rightW += data.val;
+                    else rightW -= data.val;
+                    showGhost('w-r-add', (data.disturb==='add' ? '+' : '-') + data.val);
+                } else {
+                    // Sağ bozulmuştu, sola işlem yapıyoruz
+                    if (data.disturb === 'add') leftW += data.val;
+                    else leftW -= data.val;
+                    showGhost('w-l-add', (data.disturb==='add' ? '+' : '-') + data.val);
+                }
+
+                updateVisuals();
+                
+                setTimeout(() => {
+                    showFeedback(true);
+                }, 1000); // Animasyon bitince
+            } else {
+                alert("Bu işlem teraziyi dengelemez! 'Eşitliğin Korunumu' ilkesini hatırla: Bir tarafa ne yaparsan, diğer tarafa da aynısını yapmalısın.");
+            }
+        }
+
+        function showFeedback(isSuccess) {
+            const fb = document.getElementById('feedback');
+            const nextBtn = document.getElementById('next-btn');
+            const title = document.getElementById('fb-title');
+            const msg = document.getElementById('fb-msg');
+
+            fb.style.display = 'flex';
+
+            if (currentIdx === levels.length - 1) {
+                title.innerText = "DENGE USTASI!";
+                msg.innerText = "Tapınağın sırrını çözdün. Şifre parçan:";
+                document.getElementById('secret-card').style.display = 'block';
+                nextBtn.innerText = "ANA MENÜYE DÖN";
+                nextBtn.onclick = () => window.location.href = 'index.html';
+            } else {
+                document.getElementById('secret-card').style.display = 'none';
+                nextBtn.innerText = "SONRAKİ SINAV ▶";
+                nextBtn.onclick = nextLevel;
+            }
+        }
+
+        function nextLevel() {
+            currentIdx++;
+            loadLevel();
+        }
+
+        // --- KODLAMA MODAL ---
+        function openCodeModal() { document.getElementById('codeModal').style.display = 'flex'; }
+        function closeCodeModal() { document.getElementById('codeModal').style.display = 'none'; }
+        document.getElementById('codeModal').addEventListener('click', function(e) {
+            if(e.target === this) closeCodeModal();
+        });
+
+    </script>
+</body>
+</html>

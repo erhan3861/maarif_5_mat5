@@ -1,0 +1,394 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Akıllı Çiftlik - Görev 4</title>
+    <link href="https://fonts.googleapis.com/css2?family=VT323&family=Roboto:wght@500;700&display=swap" rel="stylesheet">
+    <style>
+        /* --- GENEL AYARLAR (ÇİFTLİK TEMASI) --- */
+        body {
+            margin: 0;
+            padding: 0;
+            font-family: 'Roboto', sans-serif;
+            background-color: #5da552;
+            /* Toprak Dokusu */
+            background-image: 
+                linear-gradient(rgba(0,0,0,0.1) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(0,0,0,0.1) 1px, transparent 1px);
+            background-size: 20px 20px;
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            color: #2d3436;
+            overflow: hidden;
+            user-select: none;
+        }
+
+        /* --- ÜST BUTONLAR --- */
+        .top-bar {
+            position: absolute; top: 20px; width: 95%;
+            display: flex; justify-content: space-between; align-items: center;
+            z-index: 50; pointer-events: none;
+        }
+        .right-group { display: flex; gap: 10px; pointer-events: auto; }
+        
+        .top-btn {
+            padding: 8px 20px; border-radius: 5px; border: 2px solid #2d3436;
+            font-family: 'VT323', monospace; font-size: 1.2rem; letter-spacing: 1px;
+            text-decoration: none; cursor: pointer; transition: all 0.2s;
+            display: flex; align-items: center; justify-content: center;
+            pointer-events: auto; background: #f1c40f; color: #2d3436;
+            box-shadow: 4px 4px 0 #2d3436;
+        }
+
+        .home-btn { background: #e67e22; color: #fff; }
+        .top-btn:hover { transform: translate(-2px, -2px); box-shadow: 6px 6px 0 #2d3436; }
+        .top-btn:active { transform: translate(2px, 2px); box-shadow: 2px 2px 0 #2d3436; }
+
+        /* --- OYUN KONSOLU --- */
+        .farm-interface {
+            width: 90%; max-width: 900px;
+            height: 85vh;
+            background: #fff;
+            border: 5px solid #2d3436;
+            border-radius: 15px;
+            box-shadow: 10px 10px 0 rgba(0,0,0,0.2);
+            display: flex; flex-direction: column; align-items: center;
+            position: relative;
+            padding: 20px;
+            overflow-y: auto;
+        }
+
+        /* Başlık */
+        .task-header {
+            width: 100%; text-align: center; margin-bottom: 20px;
+            border-bottom: 2px dashed #ccc; padding-bottom: 10px;
+        }
+        .task-title { font-family: 'VT323', monospace; font-size: 2rem; color: #27ae60; margin: 0; }
+        .task-desc { font-size: 1rem; color: #7f8c8d; }
+
+        /* Tarla Alanı (Grid) */
+        .field-container {
+            display: flex; flex-direction: column; align-items: center;
+            margin-bottom: 20px;
+        }
+
+        .field-grid {
+            display: grid;
+            gap: 2px;
+            background: #795548; /* Toprak rengi */
+            padding: 5px;
+            border: 4px solid #5d4037;
+            position: relative;
+        }
+
+        .soil-cell {
+            width: 40px; height: 40px;
+            background: #d7ccc8; /* Sürülmüş toprak */
+            display: flex; align-items: center; justify-content: center;
+            font-size: 1.5rem;
+            transition: background 0.3s;
+        }
+
+        /* Ürünler */
+        .crop-corn { background: #f1c40f !important; } /* Mısır - Sarı */
+        .crop-wheat { background: #8bc34a !important; } /* Buğday - Yeşil */
+
+        .soil-cell::after { content: '🌱'; font-size: 1rem; opacity: 0.5; }
+        .crop-corn::after { content: '🌽'; opacity: 1; }
+        .crop-wheat::after { content: '🌾'; opacity: 1; }
+
+        /* Kaydırıcı (Slider) */
+        .slider-container {
+            width: 80%; margin: 20px 0; text-align: center;
+        }
+        .split-slider {
+            width: 100%; cursor: pointer; accent-color: #27ae60; height: 10px;
+        }
+
+        /* Hesaplama Paneli */
+        .calc-panel {
+            background: #f1f2f6;
+            padding: 15px; border-radius: 10px;
+            border: 2px solid #bdc3c7;
+            width: 80%;
+            font-family: 'VT323', monospace; font-size: 1.5rem;
+            display: flex; flex-direction: column; gap: 10px;
+        }
+
+        .calc-row {
+            display: flex; justify-content: space-between; align-items: center;
+            border-bottom: 1px dotted #ccc; padding-bottom: 5px;
+        }
+        .calc-input {
+            width: 60px; font-family: inherit; font-size: 1.5rem; text-align: center;
+            border: 2px solid #95a5a6; border-radius: 5px;
+        }
+        .calc-input:focus { border-color: #27ae60; outline: none; }
+
+        .btn-check {
+            background: #27ae60; color: white; border: none; padding: 10px 20px;
+            font-family: 'VT323', monospace; font-size: 1.5rem; cursor: pointer;
+            margin-top: 10px; width: 100%; border-radius: 5px;
+            box-shadow: 0 4px 0 #219150;
+        }
+        .btn-check:active { transform: translateY(2px); box-shadow: 0 2px 0 #219150; }
+
+        /* Feedback Overlay */
+        .feedback-overlay {
+            position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(255,255,255,0.95); display: none;
+            flex-direction: column; align-items: center; justify-content: center;
+            z-index: 100; text-align: center;
+        }
+
+        .tractor-icon { font-size: 5rem; margin-bottom: 10px; animation: drive 2s infinite linear; }
+        @keyframes drive { 0% { transform: translateY(0); } 50% { transform: translateY(-5px); } 100% { transform: translateY(0); } }
+
+        .next-btn {
+            margin-top: 20px; padding: 10px 40px; background: #e67e22; color: white;
+            border: none; border-radius: 5px; cursor: pointer; font-family: 'VT323'; font-size: 1.5rem;
+            box-shadow: 4px 4px 0 #d35400; border: 2px solid #2d3436;
+        }
+
+        /* Şifre Kartı */
+        .secret-card {
+            border: 4px dashed #27ae60; padding: 20px; border-radius: 10px; 
+            background: #e8f5e9; margin-top: 15px; display: none;
+        }
+        .secret-letter { font-size: 5rem; color: #27ae60; font-weight: 900; display: block; font-family: sans-serif; }
+
+        /* KODLAMA MODAL */
+        .modal-overlay {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0, 0, 0, 0.9); z-index: 1000;
+            display: none; align-items: center; justify-content: center;
+        }
+        .modal-card {
+            background: #fff; padding: 30px; border-radius: 10px; max-width: 500px;
+            text-align: center; color: #333; position: relative; border: 4px solid #27ae60;
+        }
+        .close-btn { position: absolute; top: 10px; right: 15px; font-size: 1.5rem; cursor: pointer; border: none; background: none; color: #333; }
+        .action-link { display: block; background: #27ae60; color: #fff; padding: 12px; border-radius: 5px; text-decoration: none; margin: 10px 0; font-weight: bold; font-family: 'VT323'; font-size: 1.2rem;}
+
+        @media (max-width: 600px) {
+            .soil-cell { width: 25px; height: 25px; }
+            .calc-panel { font-size: 1rem; }
+            .calc-input { width: 40px; font-size: 1rem; }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="top-bar">
+        <a href="index.html" class="top-btn home-btn">⌂ ANA MENÜ</a>
+        <div class="right-group">
+            <button onclick="openCodeModal()" class="top-btn code-btn">⌨ KODLA</button>
+            <button onclick="toggleFullScreen()" id="full-btn" class="top-btn full-btn">⛶ TAM EKRAN</button>
+        </div>
+    </div>
+
+    <div class="farm-interface">
+        
+        <div class="task-header">
+            <h2 class="task-title">AKILLI ÇİFTLİK <span id="level-idx">1/5</span></h2>
+            <div class="task-desc" id="task-desc">Bu tarlayı ekip biçmek için parçalara ayır!</div>
+        </div>
+
+        <div class="field-container">
+            <div class="field-grid" id="grid">
+                </div>
+            
+            <div class="slider-container">
+                <label for="split-range">Çit Konumu:</label>
+                <input type="range" id="split-range" class="split-slider" min="1" max="5" value="1" oninput="updateGrid()">
+            </div>
+        </div>
+
+        <div class="calc-panel">
+            <div class="calc-row">
+                <span style="color:#f1c40f;">MISIR ALANI (Sarı):</span>
+                <span><span id="txt-h">5</span> x <span id="txt-w1">1</span> = <input type="number" id="inp-area1" class="calc-input"></span>
+            </div>
+            <div class="calc-row">
+                <span style="color:#8bc34a;">BUĞDAY ALANI (Yeşil):</span>
+                <span><span id="txt-h2">5</span> x <span id="txt-w2">4</span> = <input type="number" id="inp-area2" class="calc-input"></span>
+            </div>
+            <div class="calc-row" style="border-bottom:none; font-weight:bold;">
+                <span>TOPLAM ALAN:</span>
+                <span><span id="txt-total-calc">?</span> = <input type="number" id="inp-total" class="calc-input"></span>
+            </div>
+            <button class="btn-check" onclick="checkAnswer()">EKİMİ ONAYLA ✔</button>
+        </div>
+
+        <div class="feedback-overlay" id="feedback">
+            <div class="tractor-icon">🚜</div>
+            <h2 style="color:#27ae60;" id="fb-title">HASAT BEREKETLİ!</h2>
+            <p id="fb-msg">Dağılma özelliğini kullanarak alanı doğru hesapladın.</p>
+            
+            <div class="secret-card" id="secret-card">
+                ŞİFRE PARÇASI:
+                <span class="secret-letter">T</span>
+            </div>
+
+            <button class="next-btn" id="next-btn" onclick="nextLevel()">SIRADAKİ TARLA ▶</button>
+        </div>
+    </div>
+
+    <div class="modal-overlay" id="codeModal">
+        <div class="modal-card">
+            <button class="close-btn" onclick="closeCodeModal()">×</button>
+            <h2 style="color:#27ae60;">🌾 Tarım Algoritması</h2>
+            <p>Dağılma Özelliği (Distributive Property):</p>
+            <div style="background:#eee; padding:10px; border-radius:5px; margin:10px 0; font-family:monospace; text-align:left;">
+                total_area = height * (w1 + w2)<br>
+                // Eşittir<br>
+                total_area = (height * w1) + (height * w2)
+            </div>
+            <a href="https://github.com/erhan3861/maarif_5_mat_2/blob/main/oyun4.html" target="_blank" class="action-link">🐙 GitHub Kaynak Kodu</a>
+            <a href="https://app.talent14.com/codeEditor" target="_blank" class="action-link" style="background:#2d3436;">✨ Talent14 Editörü</a>
+        </div>
+    </div>
+
+    <script>
+        // --- TAM EKRAN ---
+        function toggleFullScreen() {
+            const btn = document.getElementById('full-btn');
+            if (!document.fullscreenElement) {
+                document.documentElement.requestFullscreen();
+                btn.innerHTML = "⛶ KÜÇÜLT";
+            } else {
+                if (document.exitFullscreen) {
+                    document.exitFullscreen();
+                    btn.innerHTML = "⛶ TAM EKRAN";
+                }
+            }
+        }
+
+        // --- OYUN VERİLERİ ---
+        const levels = [
+            { h: 5, w: 9 }, // 5 x 9
+            { h: 4, w: 8 }, // 4 x 8
+            { h: 6, w: 7 }, // 6 x 7
+            { h: 3, w: 10 }, // 3 x 10
+            { h: 5, w: 12 }  // 5 x 12
+        ];
+
+        let currentIdx = 0;
+        let currentSplit = 1;
+
+        window.onload = loadLevel;
+
+        function loadLevel() {
+            if (currentIdx >= levels.length) return;
+
+            const data = levels[currentIdx];
+            document.getElementById('level-idx').innerText = (currentIdx + 1) + "/" + levels.length;
+            document.getElementById('task-desc').innerText = `Genişliği ${data.w} birim olan tarlayı bölerek hesapla.`;
+            document.getElementById('feedback').style.display = 'none';
+            
+            // Slider ayarları
+            const slider = document.getElementById('split-range');
+            slider.max = data.w - 1; // En az 1 birim kalmalı
+            slider.value = Math.floor(data.w / 2); // Ortadan başlat
+            
+            // Inputları temizle
+            document.getElementById('inp-area1').value = "";
+            document.getElementById('inp-area2').value = "";
+            document.getElementById('inp-total').value = "";
+
+            updateGrid();
+        }
+
+        function updateGrid() {
+            const data = levels[currentIdx];
+            const splitVal = parseInt(document.getElementById('split-range').value);
+            currentSplit = splitVal;
+            const w1 = splitVal;
+            const w2 = data.w - splitVal;
+
+            // Grid Çizimi
+            const grid = document.getElementById('grid');
+            grid.innerHTML = "";
+            grid.style.gridTemplateColumns = `repeat(${data.w}, 1fr)`;
+            
+            for (let y = 0; y < data.h; y++) {
+                for (let x = 0; x < data.w; x++) {
+                    const cell = document.createElement('div');
+                    cell.className = 'soil-cell';
+                    if (x < splitVal) {
+                        cell.classList.add('crop-corn'); // Sol taraf (Mısır)
+                    } else {
+                        cell.classList.add('crop-wheat'); // Sağ taraf (Buğday)
+                    }
+                    grid.appendChild(cell);
+                }
+            }
+
+            // Metinleri Güncelle
+            document.getElementById('txt-h').innerText = data.h;
+            document.getElementById('txt-w1').innerText = w1;
+            document.getElementById('txt-h2').innerText = data.h;
+            document.getElementById('txt-w2').innerText = w2;
+            
+            // Toplam gösterimi: (5x3) + (5x6)
+            document.getElementById('txt-total-calc').innerText = `(${data.h}x${w1}) + (${data.h}x${w2})`;
+        }
+
+        function checkAnswer() {
+            const data = levels[currentIdx];
+            const w1 = currentSplit;
+            const w2 = data.w - currentSplit;
+            
+            const area1 = parseInt(document.getElementById('inp-area1').value);
+            const area2 = parseInt(document.getElementById('inp-area2').value);
+            const total = parseInt(document.getElementById('inp-total').value);
+
+            const correctA1 = data.h * w1;
+            const correctA2 = data.h * w2;
+            const correctTotal = data.h * data.w;
+
+            if (area1 === correctA1 && area2 === correctA2 && total === correctTotal) {
+                showFeedback(true);
+            } else {
+                alert("Hesaplamada hata var! Mısır ve Buğday alanlarını kontrol et.");
+            }
+        }
+
+        function showFeedback(isSuccess) {
+            const fb = document.getElementById('feedback');
+            const nextBtn = document.getElementById('next-btn');
+            const title = document.getElementById('fb-title');
+            
+            fb.style.display = 'flex';
+
+            if (currentIdx === levels.length - 1) {
+                title.innerText = "ÇİFTLİK AĞASI!";
+                document.getElementById('secret-card').style.display = 'block';
+                nextBtn.innerText = "ANA MENÜYE DÖN";
+                nextBtn.onclick = () => window.location.href = 'index.html';
+            } else {
+                document.getElementById('secret-card').style.display = 'none';
+                nextBtn.innerText = "SIRADAKİ TARLA ▶";
+                nextBtn.onclick = nextLevel;
+            }
+        }
+
+        function nextLevel() {
+            currentIdx++;
+            loadLevel();
+        }
+
+        // --- KODLAMA MODAL ---
+        function openCodeModal() { document.getElementById('codeModal').style.display = 'flex'; }
+        function closeCodeModal() { document.getElementById('codeModal').style.display = 'none'; }
+        document.getElementById('codeModal').addEventListener('click', function(e) {
+            if(e.target === this) closeCodeModal();
+        });
+
+    </script>
+</body>
+</html>

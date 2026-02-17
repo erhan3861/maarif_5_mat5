@@ -1,0 +1,417 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MAT.5.2.1 - Cebirsel Düşünme</title>
+    <link href="https://fonts.googleapis.com/css2?family=Righteous&family=Roboto:wght@400;700&display=swap" rel="stylesheet">
+    <style>
+        /* --- GENEL AYARLAR (NO-SCROLL) --- */
+        body {
+            margin: 0;
+            padding: 0;
+            font-family: 'Roboto', sans-serif;
+            /* Matematik/Uzay Temalı Arkaplan */
+            background: radial-gradient(circle at center, #2b1055 0%, #7597de 100%);
+            height: 100vh;
+            width: 100vw;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            color: white;
+            overflow: hidden;
+        }
+
+        /* --- ÜST BUTON GRUBU --- */
+        .top-bar {
+            position: absolute;
+            top: 20px;
+            width: 95%;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            z-index: 100;
+            pointer-events: none;
+        }
+
+        .left-group, .right-group {
+            display: flex; gap: 10px; pointer-events: auto;
+        }
+
+        .btn-style {
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(5px);
+            color: white;
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            padding: 8px 16px;
+            border-radius: 8px;
+            font-family: 'Righteous', cursive;
+            font-size: 0.85rem;
+            cursor: pointer;
+            text-decoration: none;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.2);
+        }
+
+        .btn-info:hover { background: #00d2d3; border-color: #00d2d3; transform: translateY(-2px); }
+        .btn-secret { background: #ff9f43; border-color: #ff9f43; color: #222; }
+        .btn-secret:hover { background: #ffaf40; transform: translateY(-2px); box-shadow: 0 0 15px #ff9f43; }
+        .btn-code:hover { background: #5f27cd; border-color: #5f27cd; transform: translateY(-2px); }
+        .btn-full:hover { background: #fff; color: #333; transform: translateY(-2px); }
+
+        /* --- HEADER (Revize: margin-top 30px) --- */
+        header {
+            flex: 0 0 auto;
+            text-align: center;
+            margin-top: 30px; /* İstenilen Revize */
+            margin-bottom: 2vh;
+            padding: 0 20px;
+        }
+
+        .theme-tag {
+            background: rgba(255,255,255,0.2);
+            color: #fff;
+            font-size: 0.8rem;
+            font-weight: 700;
+            padding: 5px 15px;
+            border-radius: 15px;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            display: inline-block;
+            margin-bottom: 10px;
+            border: 1px solid rgba(255,255,255,0.3);
+        }
+
+        h1 {
+            font-family: 'Righteous', cursive;
+            font-size: 3rem;
+            margin: 0;
+            text-shadow: 0 0 20px rgba(117, 151, 222, 0.8);
+            line-height: 1.1;
+        }
+
+        .outcome-text {
+            font-size: 1.1rem;
+            color: #c7ecee;
+            margin-top: 8px;
+            max-width: 800px;
+            font-weight: 300;
+        }
+
+        /* --- OYUN IZGARASI --- */
+        .grid-wrapper {
+            flex: 1;
+            width: 100%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding-bottom: 30px;
+        }
+
+        .grid-container {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            grid-template-rows: repeat(2, 1fr);
+            gap: 25px;
+            width: 90%;
+            max-width: 1100px;
+            height: 85%;
+        }
+
+        /* --- OYUN KARTI (Revize: text-align center) --- */
+        .game-card {
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 20px;
+            padding: 20px;
+            text-align: center; /* İstenilen Revize */
+            text-decoration: none;
+            color: #333;
+            position: relative;
+            transition: transform 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            border-bottom: 6px solid #ccc;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 10px 20px rgba(0,0,0,0.3);
+        }
+
+        .game-card:hover { transform: translateY(-8px); border-bottom-width: 10px; }
+
+        .icon { font-size: 3.5rem; margin-bottom: 15px; display: block; filter: drop-shadow(0 4px 2px rgba(0,0,0,0.2)); }
+        .card-title { font-family: 'Righteous', cursive; font-size: 1.5rem; margin: 0; color: #2c3e50; }
+        .card-desc { font-size: 0.95rem; color: #666; margin-top: 8px; line-height: 1.4; font-weight: 500; }
+
+        /* Kart Renkleri */
+        .card-1 { border-color: #feca57; } 
+        .card-2 { border-color: #ff6b6b; } 
+        .card-3 { border-color: #48dbfb; } 
+        .card-4 { border-color: #1dd1a1; } 
+        .card-5 { border-color: #5f27cd; } 
+        .card-6 { border-color: #ff9f43; } 
+
+        /* --- MODAL --- */
+        .modal-overlay {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0,0,0,0.9); backdrop-filter: blur(5px);
+            z-index: 1000; display: none; align-items: center; justify-content: center;
+            opacity: 0; transition: opacity 0.3s ease;
+        }
+        
+        .close-btn {
+            position: absolute; top: 15px; right: 20px; font-size: 2rem; cursor: pointer; border: none; background: none; color: rgba(255,255,255,0.5); line-height: 1; z-index: 10;
+        }
+        .close-btn:hover { color: #fff; }
+
+        /* --- HAKKINDA MODALI --- */
+        .about-card {
+            background: linear-gradient(135deg, #222f3e 0%, #576574 100%);
+            width: 90%; max-width: 800px;
+            border-radius: 25px; padding: 40px; 
+            color: #fff;
+            position: relative; transform: scale(0.9); transition: transform 0.3s ease;
+            box-shadow: 0 0 60px rgba(255,255,255,0.1);
+            border: 1px solid rgba(255,255,255,0.2);
+            text-align: left;
+        }
+
+        .about-header { font-family: 'Righteous', cursive; font-size: 2rem; color: #00d2d3; margin-bottom: 20px; text-align: center; }
+
+        .curriculum-box {
+            background: rgba(255, 255, 255, 0.05); border-left: 5px solid #00d2d3; padding: 15px 20px; border-radius: 0 10px 10px 0; margin-bottom: 25px;
+        }
+        .curr-title { color: #00d2d3; font-size: 0.85rem; font-weight: 800; letter-spacing: 1px; display: block; margin-bottom: 5px; }
+        .curr-text { font-size: 1.1rem; color: #fff; font-weight: 400; line-height: 1.4; }
+        .curr-code { color: #feca57; font-weight: 800; }
+
+        .scenario-desc { font-size: 1rem; color: #ccc; line-height: 1.6; margin-bottom: 25px; text-align: justify; }
+
+        .gamification-note {
+            background: rgba(255, 159, 67, 0.1); border: 1px dashed #ff9f43; padding: 15px; border-radius: 15px; margin-top: 15px; display: flex; align-items: center; gap: 15px;
+        }
+
+        .aims-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 15px; }
+        .aim-item { background: rgba(0,0,0,0.3); border: 1px solid rgba(255,255,255,0.1); padding: 15px; border-radius: 12px; text-align: center; }
+        .aim-title { color: #fff; font-size: 0.9rem; font-weight: 800; display: block; margin-bottom: 5px; }
+        .aim-text { font-size: 0.8rem; color: #aaa; }
+
+        /* --- ŞİFRE MODAL --- */
+        .password-card {
+            background: #fff; width: 90%; max-width: 400px;
+            border-radius: 20px; padding: 40px 30px; text-align: center;
+            border-top: 8px solid #ff9f43; color: #333; position: relative;
+        }
+        .pass-input {
+            width: 80%; padding: 15px; font-size: 1.5rem; letter-spacing: 5px; text-align: center;
+            border: 2px solid #ddd; border-radius: 10px; margin: 20px 0;
+            text-transform: uppercase; font-family: 'Righteous', cursive;
+        }
+        .unlock-btn {
+            background: #ff9f43; color: #222; border: none; padding: 12px 30px; font-size: 1.1rem;
+            border-radius: 25px; cursor: pointer; font-weight: bold; width: 100%;
+        }
+
+        .success-message { display: none; margin-top: 20px; }
+
+        /* KODLAMA MODAL */
+        .code-card { background: #fff; color: #333; text-align: center; padding: 30px; border-radius: 20px; max-width: 400px; }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            .grid-container { gap: 15px; }
+            h1 { font-size: 2rem; }
+            .aims-grid { grid-template-columns: 1fr; }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="top-bar">
+        <div class="left-group">
+            <button onclick="openModal('infoModal')" class="btn-style btn-info">
+                <span>📘</span> HAKKINDA
+            </button>
+            <!-- <button onclick="openModal('passModal')" class="btn-style btn-secret">
+                <span>🔐</span> ŞİFRE KASASI
+            </button> -->
+        </div>
+        
+        <div class="right-group">
+            <button onclick="openModal('codeModal')" class="btn-style btn-code">
+                <span>💻</span> KODLA
+            </button>
+            <button onclick="toggleFullScreen()" id="full-btn" class="btn-style btn-full">
+                <span>⛶</span> TAM EKRAN
+            </button>
+        </div>
+    </div>
+
+    <header>
+        <div class="theme-tag">2.TEMA: İŞLEMLERLE CEBİRSEL DÜŞÜNME</div>
+        <h1>MAT.5.2.1 Eşitlik ve İşlemler</h1>
+        <div class="outcome-text">Eşitliğin korunumu ve işlem özelliklerine yönelik çıkarım yapabilme</div>
+    </header>
+
+    <div class="grid-wrapper">
+        <div class="grid-container">
+            <a href="oyun1.html" class="game-card card-1">
+                <div class="icon">⚖️</div>
+                <div class="card-title">Denge Mağarası</div>
+                <div class="card-desc">Terazinin iki kefesini eşitle.</div>
+            </a>
+            <a href="oyun2.html" class="game-card card-2">
+                <div class="icon">📦</div>
+                <div class="card-title">Robot Paketleyici</div>
+                <div class="card-desc">Kutuları grupla (Birleşme Özelliği). </div>
+            </a>
+            <a href="oyun3.html" class="game-card card-3">
+                <div class="icon">🔄</div>
+                <div class="card-title">Kargo Ustası</div>
+                <div class="card-desc">Yüklerin yerini değiştir (Değişme Özelliği). </div>
+            </a>
+            <a href="oyun4.html" class="game-card card-4">
+                <div class="icon">🌾</div>
+                <div class="card-title">Akıllı Çiftlik</div>
+                <div class="card-desc">Tarlayı bölerek hesapla (Dağılma Özelliği). </div>
+            </a>
+            <a href="oyun5.html" class="game-card card-5">
+                <div class="icon">🏗️</div>
+                <div class="card-title">Blok Mimarı</div>
+                <div class="card-desc">Prizmaları bloklarla doldur. </div>
+            </a>
+            <a href="oyun6.html" class="game-card card-6">
+                <div class="icon">💻</div>
+                <div class="card-title">Matematik Korsanı</div>
+                <div class="card-desc">Strateji kullanarak şifreleri kır. </div>
+            </a>
+        </div>
+    </div>
+
+    <div class="modal-overlay" id="infoModal">
+        <div class="modal-card about-card">
+            <button class="close-btn" onclick="closeModal('infoModal')">×</button>
+            
+            <div class="about-header">CEBİRSEL DÜŞÜNME YOLCULUĞU</div>
+
+            <div class="curriculum-box">
+                <span class="curr-title">2.TEMA: İŞLEMLERLE CEBİRSEL DÜŞÜNME</span>
+                <div class="curr-text">
+                    <span class="curr-code">MAT.5.2.1.</span> Eşitliğin korunumuna ve işlem özelliklerine (değişme, birleşme, dağılma) yönelik çıkarım yapabilme.
+                </div>
+            </div>
+
+            <div class="scenario-desc">
+                Bu platform, matematiksel eşitlikleri soyut işlemlerden çıkarıp; <b>teraziler</b>, <b>kargo gemileri</b>, <b>inşaat sahaları</b> ve <b>fabrikalar</b> gibi gerçek yaşam ortamlarında keşfetmenizi sağlar.
+                Amacımız sadece işlem yapmak değil, işlemlerin özelliklerini (kısayolları) kullanarak stratejik düşünmeyi geliştirmektir.
+            </div>
+
+            <div class="gamification-note">
+                <span style="font-size:2rem;">🔐</span>
+                <div style="font-size: 0.9rem; color: #333;">
+                    <strong style="display:block;">ŞİFRE AVI:</strong>
+                    Her oyunda bir harf kazan. Harfleri birleştir ve "Şifre Kasası"nı aç.
+                </div>
+            </div>
+
+            <br>
+
+            <div class="aims-grid">
+                <div class="aim-item">
+                    <span class="aim-title">KORUNUM</span>
+                    <span class="aim-text">Denge Tapınağı ile eşitliğin bozulmadığını keşfetme.</span>
+                </div>
+                <div class="aim-item">
+                    <span class="aim-title">ÖZELLİKLER</span>
+                    <span class="aim-text">Paketleme ve Kargo ile değişme/birleşme özelliklerini anlama.</span>
+                </div>
+                <div class="aim-item">
+                    <span class="aim-title">STRATEJİ</span>
+                    <span class="aim-text">Dağılma özelliğini kullanarak pratik zihinden işlem yapma.</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal-overlay" id="passModal">
+        <div class="modal-card password-card">
+            <button class="close-btn" onclick="closeModal('passModal')" style="color:#aaa;">×</button>
+            
+            <h2 style="margin:0; color:#ff9f43;">GİZLİ ŞİFRE</h2>
+            <p style="color:#666; font-size:0.9rem;">Harfleri birleştir: E - Ş - İ - T - L - İK</p>
+            
+            <input type="text" id="passInput" class="pass-input" placeholder="ŞİFREYİ GİR" maxlength="10">
+            <button onclick="checkPassword()" class="unlock-btn">KİLİDİ AÇ</button>
+
+            <div id="successMsg" class="success-message">
+                <span style="font-size:4rem; display:block;">🏆</span>
+                <h3 style="color:#2ecc71; margin:5px 0;">TEBRİKLER!</h3>
+                <p style="color:#555;">Cebirsel düşünmenin ustası oldun.</p>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal-overlay" id="codeModal">
+        <div class="modal-card code-card">
+            <button class="close-btn" onclick="closeModal('codeModal')" style="color:#333;">×</button>
+            <h2 style="color:#2c3e50; margin-top:0;">🚀 Kaynak Kodlar</h2>
+            <p style="font-size:0.9rem; color:#666;">Projeyi geliştirmek için:</p>
+            <a href="https://github.com/erhan3861/maarif_5_mat_2/blob/main/index.html" target="_blank" style="display:block; background:#333; color:white; padding:10px; border-radius:10px; text-decoration:none; margin:10px 0;">GitHub Linki</a>
+            <a href="https://app.talent14.com/codeEditor" target="_blank" style="display:block; background:#6c5ce7; color:white; padding:10px; border-radius:10px; text-decoration:none;">Editörde Aç</a>
+        </div>
+    </div>
+
+    <script>
+        function openModal(id) {
+            const modal = document.getElementById(id);
+            modal.style.display = 'flex';
+            setTimeout(() => { modal.style.opacity = '1'; modal.querySelector('.modal-card').style.transform = 'scale(1)'; }, 10);
+        }
+
+        function closeModal(id) {
+            const modal = document.getElementById(id);
+            modal.style.opacity = '0';
+            modal.querySelector('.modal-card').style.transform = 'scale(0.9)';
+            setTimeout(() => { modal.style.display = 'none'; }, 300);
+        }
+
+        window.onclick = function(event) {
+            if (event.target.classList.contains('modal-overlay')) {
+                closeModal(event.target.id);
+            }
+        }
+
+        function toggleFullScreen() {
+            const btn = document.getElementById('full-btn');
+            if (!document.fullscreenElement) {
+                document.documentElement.requestFullscreen();
+                btn.innerHTML = "⛶ KÜÇÜLT";
+            } else {
+                if (document.exitFullscreen) {
+                    document.exitFullscreen();
+                    btn.innerHTML = "⛶ TAM EKRAN";
+                }
+            }
+        }
+
+        function checkPassword() {
+            const input = document.getElementById('passInput').value.toUpperCase().trim();
+            const successMsg = document.getElementById('successMsg');
+            
+            if (input === "EŞİTLİK") {
+                successMsg.style.display = 'block';
+                document.querySelector('.unlock-btn').style.display = 'none';
+                document.getElementById('passInput').style.borderColor = '#2ecc71';
+                document.getElementById('passInput').disabled = true;
+            } else {
+                alert("Yanlış şifre!");
+                document.getElementById('passInput').value = "";
+                document.getElementById('passInput').focus();
+            }
+        }
+    </script>
+
+</body>
+</html>
