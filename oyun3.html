@@ -3,32 +3,36 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Robot Paketleyici - Görev 2</title>
-    <link href="https://fonts.googleapis.com/css2?family=Black+Ops+One&family=Roboto+Mono:wght@500;700&display=swap" rel="stylesheet">
+    <title>Kargo Ustası - Görev 3</title>
+    <link href="https://fonts.googleapis.com/css2?family=Staatliches&family=Roboto:wght@500;700&display=swap" rel="stylesheet">
     <style>
-        /* --- GENEL AYARLAR (FABRİKA TEMASI) --- */
+        /* --- GENEL AYARLAR (LİMAN TEMASI) --- */
         body {
             margin: 0;
             padding: 0;
-            font-family: 'Roboto Mono', monospace;
-            background-color: #2d3436;
-            /* Tehlike Şeridi Deseni */
-            background-image: repeating-linear-gradient(
-                45deg,
-                #2d3436,
-                #2d3436 10px,
-                #353b48 10px,
-                #353b48 20px
-            );
+            font-family: 'Roboto', sans-serif;
+            background-color: #87ceeb;
+            /* Gökyüzü ve Deniz */
+            background-image: linear-gradient(to bottom, #87ceeb 0%, #87ceeb 60%, #2980b9 60%, #2c3e50 100%);
             height: 100vh;
             display: flex;
             flex-direction: column;
             align-items: center;
             justify-content: center;
-            color: #dfe6e9;
+            color: #2c3e50;
             overflow: hidden;
             user-select: none;
         }
+
+        /* Dalga Animasyonu */
+        .wave {
+            position: absolute; bottom: 0; left: 0; width: 200%; height: 100px;
+            background: url('data:image/svg+xml;utf8,<svg viewBox="0 0 1200 120" xmlns="http://www.w3.org/2000/svg"><path d="M0,0V46.29c47.79,22.2,103.59,32.17,158,28,70.36-5.37,136.33-33.31,206.8-37.5C438.64,32.43,512.34,53.67,583,72.05c69.27,18,138.3,24.88,209.4,13.08,36.15-6,69.85-17.84,104.45-29.34C989.49,25,1113-14.29,1200,52.47V0Z" opacity=".25" fill="%23fff" /></svg>');
+            background-size: 50% 100%;
+            animation: wave-animation 10s linear infinite;
+            z-index: 1; pointer-events: none;
+        }
+        @keyframes wave-animation { 0% { transform: translateX(0); } 100% { transform: translateX(-50%); } }
 
         /* --- ÜST BUTONLAR --- */
         .top-bar {
@@ -39,131 +43,138 @@
         .right-group { display: flex; gap: 10px; pointer-events: auto; }
         
         .top-btn {
-            padding: 8px 20px; border-radius: 5px; border: 2px solid #fab1a0;
-            font-family: 'Black Ops One', cursive; font-size: 0.9rem; letter-spacing: 1px;
+            padding: 8px 20px; border-radius: 5px; border: 2px solid #2c3e50;
+            font-family: 'Staatliches', cursive; font-size: 1.1rem; letter-spacing: 1px;
             text-decoration: none; cursor: pointer; transition: all 0.2s;
             display: flex; align-items: center; justify-content: center;
-            pointer-events: auto; background: #2d3436; color: #fab1a0;
-            box-shadow: 0 4px 0 #e17055;
+            pointer-events: auto; background: #f39c12; color: #2c3e50;
+            box-shadow: 4px 4px 0 rgba(0,0,0,0.4);
         }
 
-        .home-btn { border-color: #00cec9; color: #00cec9; box-shadow: 0 4px 0 #00b894; }
-        .top-btn:hover { transform: translateY(-2px); filter: brightness(1.2); }
-        .top-btn:active { transform: translateY(2px); box-shadow: none; }
+        .home-btn { background: #e74c3c; color: white; border-color: #c0392b; }
+        .top-btn:hover { transform: translate(-2px, -2px); box-shadow: 6px 6px 0 rgba(0,0,0,0.4); }
+        .top-btn:active { transform: translate(2px, 2px); box-shadow: 2px 2px 0 rgba(0,0,0,0.4); }
 
         /* --- OYUN KONSOLU --- */
-        .factory-interface {
-            width: 90%; max-width: 800px;
+        .port-interface {
+            width: 90%; max-width: 900px;
             height: 80vh;
-            background: #636e72;
-            border: 5px solid #2d3436;
-            border-radius: 10px;
-            box-shadow: 0 0 50px rgba(0,0,0,0.5);
+            background: rgba(255, 255, 255, 0.9);
+            border: 6px solid #34495e;
+            border-radius: 20px;
+            box-shadow: 0 30px 60px rgba(0,0,0,0.5);
             display: flex; flex-direction: column; align-items: center;
             position: relative;
             padding: 20px;
+            z-index: 10;
         }
 
-        /* Ekran (Blueprint) */
-        .screen-monitor {
-            width: 100%; height: 150px;
-            background: #000;
-            border: 4px solid #b2bec3;
-            border-radius: 5px;
+        /* Vinç Alanı */
+        .crane-area {
+            width: 100%; height: 250px;
+            position: relative;
+            border-bottom: 4px dashed #bdc3c7;
             margin-bottom: 20px;
-            display: flex; flex-direction: column;
-            align-items: center; justify-content: center;
-            color: #00ff00; /* Terminal Yeşili */
-            font-family: 'Courier New', monospace;
-            text-shadow: 0 0 10px #00ff00;
-            position: relative;
             overflow: hidden;
         }
-        
-        /* Scanline efekti */
-        .screen-monitor::after {
-            content: " "; display: block; position: absolute; top: 0; left: 0; bottom: 0; right: 0;
-            background: linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.25) 50%), linear-gradient(90deg, rgba(255, 0, 0, 0.06), rgba(0, 255, 0, 0.02), rgba(0, 0, 255, 0.06));
-            z-index: 2; background-size: 100% 2px, 3px 100%; pointer-events: none;
+
+        /* Gemi */
+        .ship {
+            position: absolute; bottom: 10px; right: 50px;
+            width: 250px; height: 80px;
+            background: #c0392b;
+            border-radius: 0 0 40px 40px;
+            display: flex; justify-content: center; align-items: flex-start;
+            z-index: 2;
+        }
+        .ship::before {
+            content: ''; position: absolute; top: -30px; right: 20px;
+            width: 60px; height: 30px; background: #ecf0f1;
+            border: 2px solid #c0392b;
+        }
+        .ship::after {
+            content: 'MAARİF KARGO';
+            position: absolute; bottom: 20px; color: rgba(255,255,255,0.7);
+            font-family: 'Staatliches'; letter-spacing: 2px;
         }
 
-        .formula-display { font-size: 2.5rem; font-weight: bold; z-index: 3; }
-        .monitor-label { font-size: 0.8rem; color: #555; position: absolute; top: 5px; left: 10px; }
-
-        /* Robot ve Bant */
-        .conveyor-belt {
-            width: 100%; height: 120px;
-            background: repeating-linear-gradient(90deg, #2d3436 0, #2d3436 20px, #1e272e 20px, #1e272e 40px);
-            border-top: 5px solid #b2bec3;
-            border-bottom: 5px solid #b2bec3;
-            position: relative;
-            overflow: hidden;
-            display: flex; align-items: center; justify-content: center;
-            animation: moveBelt 2s linear infinite;
+        /* Kaptan Siparişi (Hedef) */
+        .order-board {
+            position: absolute; top: 10px; left: 10px;
+            background: #2c3e50; color: #f1c40f;
+            padding: 15px; border-radius: 10px;
+            border: 3px solid #f1c40f;
+            box-shadow: 5px 5px 0 rgba(0,0,0,0.3);
         }
+        .order-title { font-family: 'Staatliches'; font-size: 1.2rem; display: block; margin-bottom: 5px; color: #fff;}
+        .order-val { font-size: 2rem; font-weight: bold; font-family: monospace; }
 
-        @keyframes moveBelt { from { background-position: 0 0; } to { background-position: 40px 0; } }
-
-        /* Kutu Görselleri */
-        .package-group {
-            display: flex; gap: 5px; border: 2px dashed #ffeaa7; padding: 5px; margin: 0 10px; border-radius: 5px;
-            background: rgba(255, 234, 167, 0.1);
-        }
-        .box {
-            width: 30px; height: 30px; background: #e17055; border: 2px solid #d63031;
-            display: flex; align-items: center; justify-content: center; font-size: 0.7rem; color: black; font-weight: bold;
-        }
-
-        /* Kontrol Paneli */
-        .control-panel {
+        /* Konteyner Seçenekleri */
+        .dock-area {
             flex: 1; width: 100%;
-            background: #2d3436;
-            margin-top: 20px;
-            border-radius: 10px;
-            padding: 20px;
-            display: flex; flex-direction: column; align-items: center;
+            display: flex; justify-content: center; gap: 30px;
+            align-items: center;
         }
 
-        .panel-title { color: #fab1a0; margin-bottom: 15px; text-transform: uppercase; letter-spacing: 2px; }
-
-        .btn-grid {
-            display: grid; grid-template-columns: 1fr 1fr; gap: 20px; width: 100%;
+        .container-box {
+            width: 180px; height: 100px;
+            background: repeating-linear-gradient(45deg, #2980b9, #2980b9 10px, #3498db 10px, #3498db 20px);
+            border: 4px solid #1a5276;
+            border-radius: 5px;
+            display: flex; align-items: center; justify-content: center;
+            font-family: 'Staatliches'; font-size: 2rem; color: white;
+            text-shadow: 2px 2px 0 #000;
+            cursor: pointer;
+            transition: transform 0.3s;
+            position: relative;
+            box-shadow: 0 10px 20px rgba(0,0,0,0.3);
         }
 
-        .option-btn {
-            background: #636e72; border: 3px solid #b2bec3; color: white;
-            padding: 20px; font-size: 1.2rem; cursor: pointer;
-            border-radius: 10px; font-family: 'Roboto Mono', monospace;
-            transition: all 0.2s;
-        }
-
-        .option-btn:hover { background: #00cec9; border-color: #fff; color: #2d3436; transform: scale(1.02); }
+        .container-box:hover { transform: translateY(-10px); filter: brightness(1.2); }
         
-        /* Hikaye Metni (Bisküvi sorusu için) */
-        .story-text {
-            font-size: 0.9rem; color: #81ecec; text-align: center; margin-bottom: 10px; padding: 10px; border: 1px dashed #00cec9; border-radius: 5px;
+        .container-box::before {
+            content: ''; position: absolute; top: -10px; left: 50%; transform: translateX(-50%);
+            width: 20px; height: 10px; background: #95a5a6; /* Vinç kancası yeri */
+        }
+
+        .container-wrong { background: repeating-linear-gradient(45deg, #7f8c8d, #7f8c8d 10px, #95a5a6 10px, #95a5a6 20px); }
+
+        /* Yükleme Animasyonu */
+        .loading-anim {
+            animation: loadShip 1s forwards ease-in-out;
+            z-index: 100;
+        }
+
+        @keyframes loadShip {
+            0% { transform: scale(1); }
+            50% { transform: translate(100px, -200px) scale(0.8) rotate(5deg); }
+            100% { transform: translate(200px, -150px) scale(0.5); opacity: 0; }
         }
 
         /* Feedback Overlay */
         .feedback-overlay {
             position: absolute; top: 0; left: 0; width: 100%; height: 100%;
-            background: rgba(0,0,0,0.95); display: none;
+            background: rgba(44, 62, 80, 0.95); display: none;
             flex-direction: column; align-items: center; justify-content: center;
-            z-index: 100; border-radius: 10px; text-align: center;
+            z-index: 200; border-radius: 15px; text-align: center;
         }
 
-        .robot-face { font-size: 4rem; margin-bottom: 20px; }
+        .check-icon { font-size: 5rem; margin-bottom: 20px; animation: stamp 0.5s; }
+        @keyframes stamp { 0% { transform: scale(2); opacity: 0; } 100% { transform: scale(1); opacity: 1; } }
+
         .next-btn {
-            margin-top: 20px; padding: 12px 40px; background: #e17055; color: white;
-            border: none; border-radius: 5px; cursor: pointer; font-family: 'Black Ops One'; font-size: 1.2rem;
+            margin-top: 20px; padding: 15px 40px; background: #27ae60; color: white;
+            border: none; border-radius: 5px; cursor: pointer; font-family: 'Staatliches'; font-size: 1.5rem;
+            box-shadow: 0 5px 0 #1e8449;
         }
+        .next-btn:active { transform: translateY(4px); box-shadow: none; }
 
         /* Şifre Kartı */
         .secret-card {
-            border: 4px solid #e17055; padding: 30px; border-radius: 5px; 
-            background: #2d3436; margin-top: 20px; display: none;
+            border: 4px solid #f1c40f; padding: 30px; border-radius: 10px; 
+            background: #fff; margin-top: 20px; display: none; color: #2c3e50;
         }
-        .secret-letter { font-size: 5rem; color: #e17055; font-weight: 900; display: block; text-shadow: 0 0 20px #e17055; }
+        .secret-letter { font-size: 6rem; color: #e67e22; font-weight: 900; display: block; font-family: sans-serif; }
 
         /* KODLAMA MODAL */
         .modal-overlay {
@@ -172,18 +183,17 @@
             display: none; align-items: center; justify-content: center;
         }
         .modal-card {
-            background: #2d3436; padding: 30px; border-radius: 10px; max-width: 500px;
-            text-align: center; color: #dfe6e9; position: relative; border: 2px solid #e17055;
+            background: #ecf0f1; padding: 30px; border-radius: 10px; max-width: 500px;
+            text-align: center; color: #2c3e50; position: relative; border: 4px solid #3498db;
         }
-        .close-btn { position: absolute; top: 10px; right: 15px; font-size: 1.5rem; cursor: pointer; border: none; background: none; color: #aaa; }
-        .action-link { display: block; background: #e17055; color: #fff; padding: 12px; border-radius: 5px; text-decoration: none; margin: 10px 0; font-weight: bold; }
+        .close-btn { position: absolute; top: 10px; right: 15px; font-size: 1.5rem; cursor: pointer; border: none; background: none; color: #333; }
+        .action-link { display: block; background: #3498db; color: #fff; padding: 12px; border-radius: 5px; text-decoration: none; margin: 10px 0; font-weight: bold; font-family: 'Staatliches'; font-size: 1.2rem;}
 
-        /* Responsive */
-        @media (max-width: 600px) {
-            .formula-display { font-size: 1.5rem; }
-            .btn-grid { grid-template-columns: 1fr; }
+        @media (max-width: 700px) {
+            .dock-area { flex-direction: column; gap: 15px; }
+            .container-box { width: 90%; height: 60px; font-size: 1.5rem; }
+            .ship { width: 150px; right: 10px; }
         }
-
     </style>
 </head>
 <body>
@@ -196,55 +206,53 @@
         </div>
     </div>
 
-    <div class="factory-interface">
+    <div class="port-interface">
         
-        <div style="width:100%; text-align:right; font-size:0.8rem; margin-bottom:5px;">İŞ EMRİ: <span id="level-idx">1/5</span></div>
+        <div style="width:100%; text-align:right; font-weight:bold; margin-bottom:5px;">SEVKİYAT: <span id="level-idx">1/5</span></div>
 
-        <div class="screen-monitor">
-            <div class="monitor-label">SİSTEM HATASI: GRUPLAMA YANLIŞ</div>
-            <div class="formula-display" id="problem-text">(3 + 2) + 4</div>
-            <div style="font-size:0.9rem; color:#fab1a0; margin-top:5px;">SONUCU DEĞİŞTİRMEDEN YENİDEN GRUPLA!</div>
+        <div class="crane-area">
+            <div class="order-board">
+                <span class="order-title">KAPTANIN İSTEĞİ:</span>
+                <span class="order-val" id="target-order">12 + 8</span>
+            </div>
+            
+            <div class="ship"></div>
         </div>
 
-        <div id="story-box" class="story-text" style="display:none;"></div>
-
-        <div class="conveyor-belt" id="belt">
+        <div class="dock-area" id="dock-container">
             </div>
 
-        <div class="control-panel">
-            <div class="panel-title">ALTERNATİF PLAN SEÇ</div>
-            <div class="btn-grid" id="options-container">
-                </div>
-        </div>
-
         <div class="feedback-overlay" id="feedback">
-            <div class="robot-face">🤖</div>
-            <h2 style="color:#00cec9;" id="fb-title">SİSTEM ONARILDI!</h2>
-            <p id="fb-msg" style="color:#fff;">Üretim hattı sorunsuz çalışıyor.</p>
+            <div class="check-icon">🚢</div>
+            <h2 style="color:#f1c40f;" id="fb-title">YÜKLEME TAMAM!</h2>
+            <p id="fb-msg" style="color:#fff;">Sıra değişse de toplam ağırlık değişmedi.</p>
             
             <div class="secret-card" id="secret-card">
                 ŞİFRE PARÇASI:
-                <span class="secret-letter">Ş</span>
+                <span class="secret-letter">İ</span>
             </div>
 
-            <button class="next-btn" id="next-btn" onclick="nextLevel()">SONRAKİ İŞ EMRİ ▶</button>
+            <button class="next-btn" id="next-btn" onclick="nextLevel()">SIRADAKİ GEMİ ▶</button>
         </div>
     </div>
+
+    <div class="wave"></div>
 
     <div class="modal-overlay" id="codeModal">
         <div class="modal-card">
             <button class="close-btn" onclick="closeCodeModal()">×</button>
-            <h2 style="color:#e17055;">🏭 Fabrika Kodu</h2>
-            <p>Birleşme özelliği (Associative Property) bilgisayarda böyle çalışır:</p>
-            <div style="background:rgba(0,0,0,0.5); padding:10px; font-family:monospace; text-align:left; color:#00ff00; margin-bottom:10px;">
-                # Sonuç aynı kalır
-                plan_a = (a * b) * c
-                plan_b = a * (b * c)
-                
-                print(plan_a == plan_b) # True
+            <h2 style="color:#2980b9;">🏗️ Lojistik Kodu</h2>
+            <p>Değişme Özelliği (Commutative Property) kodlarda şöyle görünür:</p>
+            <div style="background:#fff; padding:10px; border-radius:5px; margin:10px 0; font-family:monospace; text-align:left; color:#333; border:1px solid #ccc;">
+                let order1 = 12 + 8;<br>
+                let order2 = 8 + 12;<br>
+                <br>
+                if (order1 === order2) {<br>
+                &nbsp;&nbsp;loadShip(); // Gemiye Yükle<br>
+                }
             </div>
-            <a href="https://github.com/erhan3861/maarif_5_mat_2/blob/main/oyun2.html" target="_blank" class="action-link">🐙 GitHub Kaynak Kodu</a>
-            <a href="https://app.talent14.com/codeEditor" target="_blank" class="action-link">✨ Talent14 Editörü</a>
+            <a href="https://github.com/erhan3861/maarif_5_mat_2/blob/main/oyun3.html" target="_blank" class="action-link">🐙 GitHub Kaynak Kodu</a>
+            <a href="https://app.talent14.com/codeEditor" target="_blank" class="action-link" style="background:#2c3e50;">✨ Talent14 Editörü</a>
         </div>
     </div>
 
@@ -263,42 +271,32 @@
             }
         }
 
-        // --- OYUN VERİLERİ (BİRLEŞME ÖZELLİĞİ) ---
+        // --- OYUN VERİLERİ (DEĞİŞME ÖZELLİĞİ) ---
         const levels = [
             {
-                q: "(3 + 2) + 4",
-                story: null,
-                correct: "3 + (2 + 4)",
-                wrong: "(3 + 2) + 5", // Yanlış sayı
-                type: "add"
+                q: "12 + 8",
+                correct: "8 + 12",
+                wrong: "12 - 8"
             },
             {
-                q: "(5 x 2) x 3",
-                story: null,
-                correct: "5 x (2 x 3)",
-                wrong: "5 x (2 + 3)", // Yanlış işlem
-                type: "mult"
+                q: "5 x 9",
+                correct: "9 x 5",
+                wrong: "5 + 9"
             },
             {
-                q: "(20 x 10) x 25",
-                story: "FABRİKA RAPORU: 20 paket bisküvi bir kutuda. 10 bisküvi pakette. 25 kutu kolide. Toplamı bul!",
-                correct: "20 x (10 x 25)",
-                wrong: "(20 x 10) + 25",
-                type: "mult"
+                q: "100 + 45",
+                correct: "45 + 100",
+                wrong: "100 + 54"
             },
             {
-                q: "15 + (12 + 8)",
-                story: "KARGO RAPORU: Önce 12 ve 8 koliyi yükle, sonra 15'i ekle. Aynı sonucu veren plan hangisi?",
-                correct: "(15 + 12) + 8",
-                wrong: "15 + (12 - 8)",
-                type: "add"
+                q: "20 x 4",
+                correct: "4 x 20",
+                wrong: "20 / 4"
             },
             {
-                q: "(4 x 6) x 10",
-                story: null,
-                correct: "4 x (6 x 10)",
-                wrong: "4 x (6 x 100)",
-                type: "mult"
+                q: "15 + 2 + 3",
+                correct: "3 + 15 + 2",
+                wrong: "15 + 2 x 3"
             }
         ];
 
@@ -311,21 +309,13 @@
 
             const data = levels[currentIdx];
             document.getElementById('level-idx').innerText = (currentIdx + 1) + "/" + levels.length;
-            document.getElementById('problem-text').innerText = data.q;
+            document.getElementById('target-order').innerText = data.q;
             document.getElementById('feedback').style.display = 'none';
 
-            // Hikaye varsa göster
-            const storyBox = document.getElementById('story-box');
-            if (data.story) {
-                storyBox.style.display = "block";
-                storyBox.innerText = data.story;
-            } else {
-                storyBox.style.display = "none";
-            }
-
-            // Butonları Karıştır
-            const container = document.getElementById('options-container');
+            // Butonları Karıştır ve Oluştur
+            const container = document.getElementById('dock-container');
             container.innerHTML = "";
+            
             const opts = [
                 { txt: data.correct, isCorrect: true },
                 { txt: data.wrong, isCorrect: false }
@@ -333,70 +323,42 @@
             opts.sort(() => Math.random() - 0.5);
 
             opts.forEach(opt => {
-                const btn = document.createElement('button');
-                btn.className = 'option-btn';
-                btn.innerText = opt.txt;
-                btn.onclick = () => checkAnswer(opt.isCorrect);
-                container.appendChild(btn);
+                const box = document.createElement('div');
+                box.className = 'container-box';
+                // Yanlış cevap için stil (İpucu olmasın diye başta aynı class)
+                // box.classList.add(opt.isCorrect ? '' : 'container-wrong'); 
+                box.innerText = opt.txt;
+                
+                box.onclick = function() {
+                    if(opt.isCorrect) {
+                        this.classList.add('loading-anim');
+                        setTimeout(() => showFeedback(true), 1000);
+                    } else {
+                        this.style.backgroundColor = "#c0392b";
+                        alert("HATA! Bu yükün ağırlığı tutmuyor. Toplam aynı olmalı!");
+                        this.style.backgroundColor = ""; // Reset
+                    }
+                };
+                
+                container.appendChild(box);
             });
-
-            // Görselleştirme (Basit kutular)
-            visualize(data.type);
-        }
-
-        function visualize(type) {
-            const belt = document.getElementById('belt');
-            belt.innerHTML = "";
-            
-            // Görsel olarak 3 grup kutu koyalım
-            for(let i=0; i<3; i++) {
-                const group = document.createElement('div');
-                group.className = 'package-group';
-                
-                // İçine 2-3 kutu atalım
-                const count = type === 'add' ? 2 : 3;
-                for(let j=0; j<count; j++) {
-                    const box = document.createElement('div');
-                    box.className = 'box';
-                    box.innerText = type === 'add' ? '+' : 'x';
-                    group.appendChild(box);
-                }
-                belt.appendChild(group);
-            }
-        }
-
-        function checkAnswer(isCorrect) {
-            if (isCorrect) {
-                // Doğru
-                document.getElementById('problem-text').style.color = "#00cec9";
-                document.getElementById('problem-text').innerText = "SİSTEM ONAYLANDI";
-                
-                setTimeout(() => {
-                    showFeedback(true);
-                }, 500);
-            } else {
-                // Yanlış
-                alert("HATA! Bu plan üretim sonucunu değiştirir. Sayıların gruplanmasına dikkat et!");
-            }
         }
 
         function showFeedback(isSuccess) {
             const fb = document.getElementById('feedback');
             const nextBtn = document.getElementById('next-btn');
             const title = document.getElementById('fb-title');
-            const msg = document.getElementById('fb-msg');
-
+            
             fb.style.display = 'flex';
 
             if (currentIdx === levels.length - 1) {
-                title.innerText = "ÜRETİM MÜDÜRÜ!";
-                msg.innerText = "Tüm iş emirlerini başarıyla tamamladın. Şifre parçan:";
+                title.innerText = "LİMAN ŞEFİ!";
                 document.getElementById('secret-card').style.display = 'block';
                 nextBtn.innerText = "ANA MENÜYE DÖN";
                 nextBtn.onclick = () => window.location.href = 'index.html';
             } else {
                 document.getElementById('secret-card').style.display = 'none';
-                nextBtn.innerText = "SONRAKİ İŞ EMRİ ▶";
+                nextBtn.innerText = "SIRADAKİ GEMİ ▶";
                 nextBtn.onclick = nextLevel;
             }
         }
